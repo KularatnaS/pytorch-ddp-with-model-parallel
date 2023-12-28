@@ -1,4 +1,6 @@
 import os
+import argparse
+
 import torch
 import torch.distributed as dist
 import torch.nn as nn
@@ -17,6 +19,9 @@ class ToyMpModel(nn.Module):
         self.net2 = torch.nn.Linear(10, 5).to(dev1)
 
     def forward(self, x):
+        local_rank = int(os.environ['LOCAL_RANK'])
+        global_rank = int(os.environ['RANK'])
+        print(f"devices used on global/local rank: {global_rank}/{local_rank}: {self.dev0}, {self.dev1}")
         x = x.to(self.dev0)
         x = self.relu(self.net1(x))
         x = x.to(self.dev1)
@@ -24,7 +29,6 @@ class ToyMpModel(nn.Module):
 
 
 def demo_model_parallel():
-    dist.init_process_group("nccl")
     local_rank = int(os.environ['LOCAL_RANK'])
     global_rank = int(os.environ['RANK'])
     print(f"Running DDP with model parallel example on global/local rank: {global_rank}/{local_rank}.")
@@ -47,5 +51,11 @@ def demo_model_parallel():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    args, _ = parser.parse_known_args()
+    print("args: ", args)
+    # init process group
+    dist.init_process_group(backend='nccl')
+
     demo_model_parallel()
     dist.destroy_process_group()
