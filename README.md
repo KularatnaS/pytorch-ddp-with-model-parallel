@@ -1,5 +1,5 @@
 # Sharded data/tensor parallelism in PyTorch using aws sagemaker
-Experimenting with dummy toy model
+Experimenting with a dummy model
 
 ## References
 - [Ref 1](https://docs.aws.amazon.com/sagemaker/latest/dg/model-parallel-extended-features-pytorch-sharded-data-parallelism.html)
