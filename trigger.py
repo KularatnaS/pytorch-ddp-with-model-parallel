@@ -1,22 +1,37 @@
 from sagemaker.pytorch import PyTorch
-import sagemaker
 
-sagemaker_session = sagemaker.Session()
-role = 'arn:aws:iam::101245251104:role/service-role/AmazonSageMaker-ExecutionRole-20210115T112099'
+mpi_options = "-verbose --mca orte_base_help_aggregate 0 "
+smp_parameters = {
+    "ddp": True,
+    "fp16": True,
+    "prescaled_batch": True,
+    "sharded_data_parallel_degree": 1,
+    "tensor_parallel_degree": 2
+}
 
-pt_estimator = PyTorch(
-    entry_point="run.py",
+pytorch_estimator = PyTorch(
     source_dir="source",
-    role=role,
-    framework_version="2.1.0",
-    py_version="py310",
-    instance_count=1,
-    instance_type="ml.g4dn.12xlarge",
+    entry_point="run.py",
+    role='arn:aws:iam::101245251104:role/service-role/AmazonSageMaker-ExecutionRole-20210115T112099',
+    instance_type="ml.p4d.24xlarge",
+    volume_size=200,
+    instance_count=2,
+    py_version="py39",
+    framework_version="1.13.1",
     distribution={
-        "torch_distributed": {
-            "enabled": True
-        }
-    }
+        "smdistributed": {
+            "modelparallel": {
+                "enabled": True,
+                "parameters": smp_parameters,
+            }
+        },
+        "mpi": {
+            "enabled": True,
+            "processes_per_host": 8,
+            "custom_mpi_options": mpi_options,
+        },
+    },
 )
 
-pt_estimator.fit()
+
+pytorch_estimator.fit()
