@@ -1,4 +1,5 @@
 from sagemaker.pytorch import PyTorch
+import sagemaker
 
 mpi_options = "-verbose --mca orte_base_help_aggregate 0 "
 smp_parameters = {
@@ -12,7 +13,7 @@ smp_parameters = {
 pytorch_estimator = PyTorch(
     source_dir="source",
     entry_point="run.py",
-    role='arn:aws:iam::101245251104:role/service-role/AmazonSageMaker-ExecutionRole-20210115T112099',
+    role=sagemaker.get_execution_role(),
     instance_type="ml.p4d.24xlarge",
     volume_size=200,
     instance_count=2,
